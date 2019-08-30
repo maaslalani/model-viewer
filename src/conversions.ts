@@ -14,7 +14,8 @@
  */
 
 import {Math as ThreeMath} from 'three';
-import {parseValues, ValueNode} from './parsers.js';
+
+import {parseExpressions, ValueNode} from './styles/parsers.js';
 
 
 /**
@@ -84,6 +85,7 @@ const convertAngleValueNode =
  *
  * Returns null if the spherical string cannot be parsed.
  */
+/*
 export const deserializeSpherical =
     (sphericalString: string): [number, number, number|string]|null => {
       try {
@@ -105,14 +107,22 @@ export const deserializeSpherical =
 
       return null;
     };
-
+*/
 export const deserializeAngleToDeg = (angleString: string): number|null => {
   try {
-    const angleValueNode = parseValues(angleString);
+    const expressionNodes = parseExpressions(angleString);
 
-    if (angleValueNode.length === 1) {
-      return convertAngleValueNode(angleValueNode[0], 'deg');
+    if (expressionNodes.length === 0) {
+      return null;
     }
+
+    const [angleValueNode] = expressionNodes[0].parts;
+
+    if (angleValueNode.type !== 'value') {
+      return null;
+    }
+
+    return convertAngleValueNode(angleValueNode, 'deg');
   } catch (_error) {
   }
 
