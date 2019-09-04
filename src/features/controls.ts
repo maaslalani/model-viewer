@@ -16,8 +16,11 @@
 import {property} from 'lit-element';
 import {Event, Spherical} from 'three';
 
-import {deserializeAngleToDeg, deserializeSpherical} from '../conversions.js';
 import ModelViewerElementBase, {$ariaLabel, $needsRender, $onModelLoad, $onResize, $scene, $tick} from '../model-viewer-base.js';
+import {deserializeAngle} from '../styles/deserializers.js';
+import {SphericalEvaluator} from '../styles/evaluators.js';
+import {parseExpressions} from '../styles/parsers.js';
+import {StyleEffector} from '../styles/style-effector.js';
 import {ChangeEvent, ChangeSource, SmoothControls} from '../three-components/SmoothControls.js';
 import {Constructor} from '../utilities.js';
 
@@ -40,11 +43,10 @@ const InteractionPromptStrategy:
       WHEN_FOCUSED: 'when-focused'
     };
 
-const InteractionPolicy:
-    {[index: string]: InteractionPolicy} = {
-      ALWAYS_ALLOW: 'always-allow',
-      WHEN_FOCUSED: 'allow-when-focused'
-    };
+const InteractionPolicy: {[index: string]: InteractionPolicy} = {
+  ALWAYS_ALLOW: 'always-allow',
+  WHEN_FOCUSED: 'allow-when-focused'
+};
 
 export const DEFAULT_CAMERA_ORBIT = '0deg 75deg auto';
 const DEFAULT_FIELD_OF_VIEW = '45deg';
@@ -70,6 +72,10 @@ const $updateAria = Symbol('updateAria');
 const $updateCamera = Symbol('updateCamera');
 const $updateCameraOrbit = Symbol('updateCameraOrbit');
 const $updateFieldOfView = Symbol('updateFieldOfView');
+const $cameraOrbitEffector = Symbol('cameraOrbitEffector');
+const $cameraOrbitEvaluator = Symbol('cameraOrbitEvaluator');
+
+const $syncCameraOrbit = Symbol('syncCameraOrbit');
 
 const $blurHandler = Symbol('blurHandler');
 const $focusHandler = Symbol('focusHandler');
@@ -125,8 +131,7 @@ export const ControlsMixin = (ModelViewerElement:
             InteractionPromptStrategy.WHEN_FOCUSED;
 
         @property({type: String, attribute: 'interaction-policy'})
-        interactionPolicy: InteractionPolicy =
-            InteractionPolicy.ALWAYS_ALLOW;
+        interactionPolicy: InteractionPolicy = InteractionPolicy.ALWAYS_ALLOW;
 
         protected[$promptElement]: Element;
 
@@ -149,6 +154,11 @@ export const ControlsMixin = (ModelViewerElement:
 
         protected[$promptTransitionendHandler] = () =>
             this[$onPromptTransitionend]();
+
+        protected[$cameraOrbitEffector] =
+            new StyleEffector(() => this[$syncCameraOrbit]());
+
+        protected[$cameraOrbitEvaluator]: SphericalEvaluator|null = null;
 
         constructor() {
           super();
@@ -239,21 +249,15 @@ export const ControlsMixin = (ModelViewerElement:
         }
 
         [$updateFieldOfView]() {
-          let fov = deserializeAngleToDeg(this.fieldOfView);
+          let fov = deserializeAngle(this.fieldOfView);
           if (fov == null) {
-            fov = deserializeAngleToDeg(DEFAULT_FIELD_OF_VIEW);
+            fov = deserializeAngle(DEFAULT_FIELD_OF_VIEW);
           }
           this[$controls].setFov(fov!);
         }
 
-        [$updateCameraOrbit]() {
-          let sphericalValues = deserializeSpherical(this.cameraOrbit);
-
-          if (sphericalValues == null) {
-            sphericalValues = deserializeSpherical(DEFAULT_CAMERA_ORBIT)!;
-          }
-
-          let [theta, phi, radius] = sphericalValues;
+        [$syncCameraOrbit]() {
+          let [theta, phi, radius] = this[$cameraOrbitEvaluator]!.evaluate();
 
           if (typeof radius === 'string') {
             switch (radius) {
@@ -263,7 +267,17 @@ export const ControlsMixin = (ModelViewerElement:
                 break;
             }
           }
+
           this[$controls].setOrbit(theta, phi, radius as number);
+        }
+
+        [$updateCameraOrbit]() {
+          const ast = parseExpressions(this.cameraOrbit);
+
+          this[$cameraOrbitEffector].observeEffectsFor(ast);
+          this[$cameraOrbitEvaluator] = new SphericalEvaluator(ast);
+
+          this[$syncCameraOrbit]();
         }
 
         [$tick](time: number, delta: number) {

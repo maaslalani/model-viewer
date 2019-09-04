@@ -14,8 +14,6 @@
  */
 
 import './utils-spec.js';
-import './parsers-spec.js';
-import './conversions-spec.js';
 import './model-viewer-base-spec.js';
 import './three-components/ModelScene-spec.js';
 import './three-components/Renderer-spec.js';
@@ -28,6 +26,9 @@ import './utilities/cache-eviction-policy-spec.js';
 import './utilities/focus-visible-spec.js';
 import './utilities/progress-tracker-spec.js';
 import './utilities/timer-spec.js';
+import './styles/conversions-spec.js';
+import './styles/deserializers-spec.js';
+import './styles/parsers-spec.js';
 import './features/animation-spec.js';
 import './features/staging-spec.js';
 import './features/controls-spec.js';

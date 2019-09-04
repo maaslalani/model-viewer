@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 import {EventDispatcher, Texture} from 'three';
+
+import {ExpressionNode, ExpressionTerm, FunctionNode, HexNode, IdentNode, NumberNode, Operator, OperatorNode} from '../styles/parsers.js';
 import {deserializeUrl} from '../utilities.js';
 
 export const elementFromLocalPoint =
@@ -153,3 +155,23 @@ export const isInDocumentTree = (node: Node): boolean => {
 
   return false;
 };
+
+/**
+ * Helpers to assist in generating AST test fixtures
+ */
+export const numberNode = (value: number, unit: string|null): NumberNode =>
+    ({type: 'number', number: value, unit});
+
+export const expressionNode = (terms: Array<ExpressionTerm>): ExpressionNode =>
+    ({type: 'expression', terms});
+
+export const hexNode = (value: string): HexNode => ({type: 'hex', value});
+
+export const identNode = (value: string): IdentNode => ({type: 'ident', value});
+
+export const operatorNode = (value: Operator): OperatorNode =>
+    ({type: 'operator', value});
+
+export const functionNode =
+    (name: string, args: Array<ExpressionNode>): FunctionNode =>
+        ({type: 'function', name: identNode(name), arguments: args});
