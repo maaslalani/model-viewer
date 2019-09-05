@@ -162,7 +162,7 @@ suite('ModelViewerElementBase with ControlsMixin', () => {
             element.getCameraOrbit(), {...orbit, phi: orbit.phi + 1});
       });
 
-      test.only(
+      test(
           'supports env(window-scroll-y) to correlate orbit with scroll',
           async () => {
             const orbit = element.getCameraOrbit();

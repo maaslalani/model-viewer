@@ -136,7 +136,6 @@ const parseExpression = (() => {
 
   return (inputString: string): ParseResult<ExpressionNode> => {
     const terms: Array<ExpressionTerm> = [];
-    let parseIterations = 0;
 
     while (inputString.length) {
       inputString = inputString.trim();
