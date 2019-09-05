@@ -159,7 +159,8 @@
             </li>
             <li>
               <div>camera-orbit</div>
-              <p>Set the starting and/or subsequent orbital position of the camera.
+              <span>
+                <p>Set the starting and/or subsequent orbital position of the camera.
               You can control the azimuthal and polar angles, and the distance
               from the model. Accepts values of the form "$angle $angle $distance",
               like "10deg 75deg 1.5m". Also supports units in radians ("rad") for
@@ -168,9 +169,16 @@
               sets the distance to the ideal framing distance based on the
               responsive scaling applied to the model scene. Any time this value
               changes from its initially configured value, the camera will
-              interpolate from its current position to the new value. Defaults to
-              "0deg 75deg auto".</p>
-            </li><li>
+              interpolate from its current position to the new value.</p>
+                <p>Additionally, you can use calc() and env() to correlate the camera angles
+              and/or its radius with the top-level vertical scroll position of the page. For
+              example, a value like "calc(30deg - env(window-scroll-y) * 60deg) 75deg 1.5m"
+              cause the camera to orbit horizontally around the model as the user scrolls
+              down the page.</p>
+                <p>Defaults to "0deg 75deg auto".</p>
+              </span>
+            </li>
+            <li>
               <div>environment-image</div>
               <p>Controls the environmental reflection of the model. Normally if
               background-image is set, that image will also be used for the
