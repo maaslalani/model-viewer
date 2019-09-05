@@ -29,6 +29,8 @@ import './utilities/timer-spec.js';
 import './styles/conversions-spec.js';
 import './styles/deserializers-spec.js';
 import './styles/parsers-spec.js';
+import './styles/evaluators-spec.js';
+import './styles/style-effector-spec.js';
 import './features/animation-spec.js';
 import './features/staging-spec.js';
 import './features/controls-spec.js';

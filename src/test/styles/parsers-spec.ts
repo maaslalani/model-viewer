@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import {ASTWalker, parseExpressions, NumberNode, IdentNode} from '../../styles/parsers.js';
-import {expressionNode, numberNode, hexNode, functionNode, operatorNode, identNode} from '../helpers.js';
+import {ASTWalker, IdentNode, NumberNode, parseExpressions} from '../../styles/parsers.js';
+import {expressionNode, functionNode, hexNode, identNode, numberNode, operatorNode} from '../helpers.js';
 
 const expect = chai.expect;
 
@@ -94,13 +94,30 @@ suite('parsers', () => {
     });
 
     suite('failure cases', () => {
-
+      suite('mismatched parens', () => {
+        test('trailing paren is gracefully dropped', () => {
+          expect(parseExpressions('calc(calc(123)))')).to.be.eql([
+            expressionNode([
+              functionNode('calc', [
+                expressionNode([
+                  functionNode('calc', [
+                    expressionNode([
+                      numberNode(123, null)
+                    ])
+                  ])
+                ])
+              ])
+            ])
+          ]);
+        });
+      });
     });
   });
 
   suite('ASTWalker', () => {
     test('only walks configured node types', () => {
-      const astWalker = new ASTWalker<NumberNode|IdentNode>(['number', 'ident']);
+      const astWalker =
+          new ASTWalker<NumberNode|IdentNode>(['number', 'ident']);
       const ast = parseExpressions('calc(123 + var(--size))')
       let visitedNodes = 0;
 

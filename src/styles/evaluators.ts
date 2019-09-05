@@ -123,7 +123,7 @@ const $identNode = Symbol('identNode');
 
 /**
  * Evaluator for CSS-like env() functions. Currently, only one environment
- * variable is accepted as an argument such functions: window-scroll-y.
+ * variable is accepted as an argument for such functions: window-scroll-y.
  *
  * The env() Evaluator is explicitly dynamic because it always refers to
  * external state that changes as the user scrolls, so it should always be
@@ -145,7 +145,8 @@ export class EnvEvaluator extends Evaluator<NumberNode> {
   constructor(envFunction: FunctionNode) {
     super();
 
-    const identNode = envFunction.arguments[0].terms[0];
+    const identNode =
+        envFunction.arguments.length ? envFunction.arguments[0].terms[0] : null;
 
     if (identNode != null && identNode.type === 'ident') {
       this[$identNode] = identNode;
@@ -255,11 +256,12 @@ export class CalcEvaluator extends Evaluator<NumberNode> {
   }
 
   get isConstant() {
-    return this[$evaluator] == null || this[$evaluator]!.isConstant;
+    return this[$evaluator] == null || Evaluator.isConstant(this[$evaluator]!);
   }
 
   [$evaluate]() {
-    return this[$evaluator] != null ? this[$evaluator]!.evaluate() : ZERO;
+    return this[$evaluator] != null ? Evaluator.evaluate(this[$evaluator]!) :
+                                      ZERO;
   }
 }
 
@@ -339,6 +341,12 @@ export class OperatorEvaluator extends Evaluator<NumberNode> {
 }
 
 
+export type SphericalStyle = [number, number, number | string];
+
+const $theta = Symbol('theta');
+const $phi = Symbol('phi');
+const $radius = Symbol('radius');
+
 /**
  * An Evaluator for the "spherical" CSS expression format such as the one used
  * by <model-viewer>. This format expresses a spherical position with three
@@ -357,12 +365,6 @@ export class OperatorEvaluator extends Evaluator<NumberNode> {
  *  - 0 10deg auto
  *  - 1.5rad -30deg 1m
  */
-export type SphericalStyle = [number, number, number | string];
-
-const $theta = Symbol('theta');
-const $phi = Symbol('phi');
-const $radius = Symbol('radius');
-
 export class SphericalEvaluator extends Evaluator<SphericalStyle> {
   protected[$lastValue]: SphericalStyle|null = null;
 

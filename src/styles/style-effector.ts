@@ -91,7 +91,7 @@ const $onScroll = Symbol('onScroll');
 
 /**
  * The StyleEffector is configured with a callback that will be invoked at the
- * optimal tim that some array of CSS expression ASTs ought to be evaluated.
+ * optimal time that some array of CSS expression ASTs ought to be evaluated.
  *
  * For example, our CSS-like expression syntax supports usage of the env()
  * function to incorporate the current top-level scroll position into a CSS
@@ -106,7 +106,7 @@ const $onScroll = Symbol('onScroll');
  * correlating specific parts of an AST with observers of the external effects
  * that they refer to (if any). So, if the AST contains env(window-scroll-y),
  * the StyleEffector manages the lifetime of a global scroll event listener and
- * notifies the user at the opportune time to evaluate the computed style.
+ * notifies the user at the optimal time to evaluate the computed style.
  */
 export class StyleEffector {
   protected[$dependencies]: EnvironmentDependencies = {};

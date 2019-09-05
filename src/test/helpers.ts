@@ -156,6 +156,42 @@ export const isInDocumentTree = (node: Node): boolean => {
   return false;
 };
 
+
+/**
+ * "Spies" on a particular object by replacing a specified part of its
+ * implementation with a custom version. Returns a function that restores the
+ * original implementation to the object when invoked.
+ */
+export const spy =
+    (object: Object,
+     property: string,
+     descriptor: PropertyDescriptor): () => void => {
+      let sourcePrototype = object;
+
+      while (sourcePrototype != null &&
+             !sourcePrototype.hasOwnProperty(property)) {
+        sourcePrototype = (sourcePrototype as any).__proto__;
+      }
+
+      if (sourcePrototype == null) {
+        throw new Error(`Cannnot spy property "${property}" on ${object}`);
+      }
+
+      const originalDescriptor =
+          Object.getOwnPropertyDescriptor(sourcePrototype, property);
+
+      if (originalDescriptor == null) {
+        throw new Error(`Cannot read descriptor of "${property}" on ${object}`);
+      }
+
+      Object.defineProperty(sourcePrototype, property, descriptor);
+
+      return () => {
+        Object.defineProperty(sourcePrototype, property, originalDescriptor);
+      };
+    };
+
+
 /**
  * Helpers to assist in generating AST test fixtures
  */

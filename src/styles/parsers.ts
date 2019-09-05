@@ -87,7 +87,7 @@ interface ParseResult<T extends ASTNode> {
  */
 export const parseExpressions = (() => {
   const cache: {[index: string]: Array<ExpressionNode>} = {};
-  (window as any).pc = cache;
+  const MAX_PARSE_ITERATIONS = 1000;  // Arbitrarily large
 
   return (inputString: string): Array<ExpressionNode> => {
     const cacheKey = inputString;
@@ -97,12 +97,19 @@ export const parseExpressions = (() => {
     }
 
     const expressions: Array<ExpressionNode> = [];
+    let parseIterations = 0;
 
     while (inputString) {
+      if (++parseIterations > MAX_PARSE_ITERATIONS) {
+        // Avoid a potentially infinite loop due to typos:
+        inputString = '';
+        break;
+      }
+
       const expressionParseResult = parseExpression(inputString);
       const expression = expressionParseResult.nodes[0];
 
-      if (expression == null) {
+      if (expression == null || expression.terms.length === 0) {
         break;
       }
 
@@ -129,6 +136,7 @@ const parseExpression = (() => {
 
   return (inputString: string): ParseResult<ExpressionNode> => {
     const terms: Array<ExpressionTerm> = [];
+    let parseIterations = 0;
 
     while (inputString.length) {
       inputString = inputString.trim();
@@ -261,6 +269,7 @@ const parseFunctionArguments =
     (inputString: string): ParseResult<ExpressionNode> => {
       const expressionNodes: Array<ExpressionNode> = [];
 
+      // Consume the opening paren
       inputString = inputString.slice(1).trim();
 
       while (inputString.length) {
@@ -271,6 +280,7 @@ const parseFunctionArguments =
         if (inputString[0] === ',') {
           inputString = inputString.slice(1).trim();
         } else if (inputString[0] === ')') {
+          // Consume the closing paren and stop parsing
           inputString = inputString.slice(1);
           break;
         }
