@@ -17,7 +17,7 @@ import {$controls, $idealCameraDistance, $promptElement, CameraChangeDetails, Co
 import ModelViewerElementBase, {$canvas, $scene} from '../../model-viewer-base.js';
 import {ChangeSource, SmoothControls} from '../../three-components/SmoothControls.js';
 import {Constructor} from '../../utilities.js';
-import {assetPath, dispatchSyntheticEvent, rafPasses, timePasses, until, waitForEvent} from '../helpers.js';
+import {assetPath, dispatchSyntheticEvent, rafPasses, spy, timePasses, until, waitForEvent} from '../helpers.js';
 import {BasicSpecTemplate} from '../templates.js';
 import {settleControls} from '../three-components/SmoothControls-spec.js';
 
@@ -148,6 +148,48 @@ suite('ModelViewerElementBase with ControlsMixin', () => {
             element.getCameraOrbit(), {...orbit, radius: nextRadius});
       });
 
+      test('supports calc() expressions', async () => {
+        const orbit = element.getCameraOrbit();
+        const nextPhi = `calc(${orbit.phi} + 1rad)`;
+
+        element.cameraOrbit = `${orbit.theta}rad ${nextPhi} ${orbit.radius}m`;
+
+        await timePasses();
+
+        settleControls(controls);
+
+        expectSphericalsToBeEqual(
+            element.getCameraOrbit(), {...orbit, phi: orbit.phi + 1});
+      });
+
+      test.only(
+          'supports env(window-scroll-y) to correlate orbit with scroll',
+          async () => {
+            const orbit = element.getCameraOrbit();
+            const nextPhi = `calc(${orbit.phi} + env(window-scroll-y))`;
+
+            const scrollPosition = 10000;
+            const scrollMax = 20000 + window.innerHeight;
+
+            const restorePageYOffset =
+                spy(window, 'pageYOffset', {value: scrollPosition});
+            const restoreBodyScrollHeight = spy(
+                document.documentElement, 'clientHeight', {value: scrollMax});
+
+            element.cameraOrbit =
+                `${orbit.theta}rad ${nextPhi} ${orbit.radius}m`;
+
+            await timePasses();
+
+            settleControls(controls);
+
+            expectSphericalsToBeEqual(
+                element.getCameraOrbit(), {...orbit, phi: orbit.phi + 0.5});
+
+            restorePageYOffset();
+            restoreBodyScrollHeight();
+          });
+
       test('defaults FOV correctly', async () => {
         expect(element.getFieldOfView()).to.be.equal(DEFAULT_FOV);
       });
@@ -254,17 +296,23 @@ suite('ModelViewerElementBase with ControlsMixin', () => {
         expect(controls).to.be.ok;
       });
 
-      test('requires focus to interact if policy is set to allow-when-focused', async  () => {
-        element.interactionPolicy = 'allow-when-focused';
-        await timePasses();
-        expect(controls.options.interactionPolicy).to.be.equal('allow-when-focused');
-      });
+      test(
+          'requires focus to interact if policy is set to allow-when-focused',
+          async () => {
+            element.interactionPolicy = 'allow-when-focused';
+            await timePasses();
+            expect(controls.options.interactionPolicy)
+                .to.be.equal('allow-when-focused');
+          });
 
-      test('does not require focus to interact if policy is set to always-allow', async () => {
-        element.interactionPolicy = 'always-allow';
-        await timePasses();
-        expect(controls.options.interactionPolicy).to.be.equal('always-allow');
-      });
+      test(
+          'does not require focus to interact if policy is set to always-allow',
+          async () => {
+            element.interactionPolicy = 'always-allow';
+            await timePasses();
+            expect(controls.options.interactionPolicy)
+                .to.be.equal('always-allow');
+          });
 
       test('sets max radius to the camera framed distance', () => {
         const cameraDistance = element[$scene].camera.position.distanceTo(
