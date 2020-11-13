@@ -1,0 +1,7 @@
+commit 6600b715f3548ea6fe305425370c09060871e580
+Author: egyptik <jerre.bau@gmail.com>
+Date:   Fri Nov 13 18:58:18 2020 +0100
+
+    Fix broken link to test.html (#1705)
+    
+    Co-authored-by: Jerre <jerre@snitcher.com>
